@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <ClerkProvider
         appearance={{
           layout: {
@@ -29,7 +30,10 @@ export default function RootLayout({
           },
         }}
       >
-        <body className={` bg-dark-2  antialiased`}>{children}</body>
+        <body className={` bg-dark-2  antialiased`}>
+          {children}
+          <Toaster />
+        </body>
       </ClerkProvider>
     </html>
   );
