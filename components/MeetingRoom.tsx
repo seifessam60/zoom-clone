@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LayoutList, Users } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import EndCallButton from "./EndCallButton";
 import Loader from "./Loader";
 
@@ -30,6 +30,7 @@ const MeetingRoom = () => {
   const [showParticipants, setShowParticipants] = useState(false);
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const router = useRouter();
   if (callingState !== CallingState.JOINED) return <Loader />;
   const CallLayout = () => {
     switch (layout) {
@@ -42,9 +43,9 @@ const MeetingRoom = () => {
     }
   };
   return (
-    <section className='relative h-screen w-screen pt-4 text-white overflow-hidden'>
-      <div className='relative size-full flex-center'>
-        <div className='flex size-full max-w-[1000px] items-center'>
+    <section className="relative h-screen w-screen pt-4 text-white overflow-hidden">
+      <div className="relative size-full flex-center">
+        <div className="flex size-full max-w-[1000px] items-center">
           <CallLayout />
         </div>
         <div
@@ -55,19 +56,23 @@ const MeetingRoom = () => {
           <CallParticipantsList onClose={() => setShowParticipants(false)} />
         </div>
       </div>
-      <div className='fixed bottom-0 flex-center gap-5 w-full flex-wrap'>
-        <CallControls />
+      <div className="fixed bottom-0 flex-center gap-5 w-full flex-wrap">
+        <CallControls
+          onLeave={() => {
+            router.push("/");
+          }}
+        />
         <DropdownMenu>
-          <DropdownMenuTrigger className='flex items-center bg-[#19232d] hover:bg-[#4c535b] px-4 py-2 rounded-2xl'>
-            <LayoutList size={20} className='text-white' />
+          <DropdownMenuTrigger className="flex items-center bg-[#19232d] hover:bg-[#4c535b] px-4 py-2 rounded-2xl">
+            <LayoutList size={20} className="text-white" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className='bg-dark-1 text-white'>
+          <DropdownMenuContent className="bg-dark-1 text-white">
             <DropdownMenuLabel>Choose a Layout</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {["Grid", "Speaker Left", "Speaker Right"].map((item) => (
               <div key={item}>
                 <DropdownMenuItem
-                  className='cursor-pointer hover:bg-dark-2'
+                  className="cursor-pointer hover:bg-dark-2"
                   onClick={() => {
                     setLayout(item.toLowerCase() as CallLayoutType);
                   }}
@@ -85,7 +90,7 @@ const MeetingRoom = () => {
             setShowParticipants(!showParticipants);
           }}
         >
-          <div className='bg-[#19232d] hover:bg-[#4c535b] px-4 py-2 rounded-2xl'>
+          <div className="bg-[#19232d] hover:bg-[#4c535b] px-4 py-2 rounded-2xl">
             <Users size={20} />
           </div>
         </button>

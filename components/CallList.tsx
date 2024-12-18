@@ -2,24 +2,25 @@
 import { useGetCalls } from "@/hooks/useGetCalls";
 import { Call, CallRecording } from "@stream-io/video-react-sdk";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MeetingCard from "./MeetingCard";
 import { Loader } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const CallList = ({ type }: { type: "ended" | "upcoming" | "recordings" }) => {
   const { endedCalls, upcomingCalls, callRecordings, isLoading } =
     useGetCalls();
   const router = useRouter();
   const [recordings, setRecordings] = useState<CallRecording[]>([]);
-
+  const { toast } = useToast();
   const getCalls = () => {
     switch (type) {
       case "ended":
         return endedCalls;
       case "upcoming":
-        return recordings;
+        return upcomingCalls;
       case "recordings":
-        return callRecordings;
+        return recordings;
       default:
         return [];
     }
@@ -37,13 +38,30 @@ const CallList = ({ type }: { type: "ended" | "upcoming" | "recordings" }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchRecordings = async () => {
+      try {
+        const callData = await Promise.all(
+          callRecordings.map((meeting) => meeting.queryRecordings())
+        );
+        const recording = callData
+          .filter((call) => call.recordings.length > 0)
+          .flatMap((call) => call.recordings);
+        setRecordings(recording);
+      } catch {
+        toast({ title: "Try again later" });
+      }
+    };
+    if (type === "recordings") fetchRecordings();
+  }, [type, callRecordings]);
+
   const calls = getCalls();
   const noCallsMessage = getNoCallsMessage();
 
   if (isLoading) return <Loader />;
 
   return (
-    <div className='grid grid-cols-1 gap-5 xl:grid-cols-2'>
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       {calls && calls.length > 0 ? (
         calls.map((meeting: Call | CallRecording) => (
           <MeetingCard
@@ -56,11 +74,13 @@ const CallList = ({ type }: { type: "ended" | "upcoming" | "recordings" }) => {
                 : "/icons/recordings.svg"
             }
             title={
-              (meeting as Call)?.state.custom.description || "No Description"
+              (meeting as Call)?.state?.custom.description ||
+              (meeting as CallRecording).filename?.substring(0, 30) ||
+              "Personal Call"
             }
             date={
-              (meeting as Call)?.state.custom.startsAt.toLocaleString() ||
-              (meeting as CallRecording)?.start_time.toLocaleString()
+              (meeting as Call).state?.startsAt?.toLocaleString() ||
+              (meeting as CallRecording).start_time?.toLocaleString()
             }
             isPreviousMeeting={type === "ended"}
             buttonIcon1={type === "recordings" ? "/icons/play.svg" : ""}
